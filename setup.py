@@ -26,7 +26,7 @@ setup(
     author_email = 'contact@guillermoguiraoaguilar.com',
     url = 'https://github.com/Funk66/leankit.git',
     keywords = ['leankit'],
-    install_requires = ['requests', 'cached_property'],
+    install_requires = ['requests', 'cached_property', 'pyyaml'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Natural Language :: English',
