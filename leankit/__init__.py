@@ -94,7 +94,7 @@ class Card(Converter):
                   'ClassOfServiceTitle', 'AssignedUserName']
 
     def __init__(self, card_dict, lane, board):
-        super(Card, self).__init__(card_dict, board)
+        super().__init__(card_dict, board)
         self.lane = lane
         self.date_archived_str = card_dict['DateArchived']
         self.last_move_str = card_dict['LastMove']
@@ -108,7 +108,7 @@ class Card(Converter):
         return str(self.external_card_id or self.id)
 
     def jsonify(self):
-        data = super(Card, self).jsonify()
+        data = super().jsonify()
         dates = ['LastActivity', 'LastMove', 'DateArchived', 'DueDate']
         for date in dates:
           data[date] = getattr(self, self.prettify_name(date))
@@ -164,7 +164,7 @@ class Lane(Converter):
                   'SiblingLaneIds', 'ActivityId', 'ActivityName', 'LaneState', 'Width']
 
     def __init__(self, lane_dict, board):
-        super(Lane, self).__init__(lane_dict, board)
+        super().__init__(lane_dict, board)
         self.cards = [Card(card_dict, self, board) for card_dict in lane_dict['Cards'] if card_dict['TypeId']]
         self.area = lane_dict.get('Area', 'wip')
 
@@ -222,7 +222,7 @@ class Lane(Converter):
         return id_list
 
     def jsonify(self):
-        data = super(Lane, self).jsonify()
+        data = super().jsonify()
         data['Area'] = self.area
         return data
 
@@ -239,7 +239,7 @@ class Board(Converter):
     def __init__(self, board, archive=False):
         if isinstance(board, int):
             board = api.get('/Boards/{}'.format(board))
-        super(Board, self).__init__(board, None)
+        super().__init__(board, None)
         self.cards = {}
         self.lanes = self.populate('Lanes', Lane)
         self.lanes.update(self.populate('Backlog', Lane))
