@@ -9,7 +9,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist bdist_wheel upload')
@@ -20,7 +20,7 @@ if sys.argv[-1] == 'publish':
 setup(
     name = 'leankit',
     packages = ['leankit'],
-    version = '0.0.1',
+    version = __version__,
     description = 'Simple wrapper for the Leankit API',
     author = 'Guillermo Guirao Aguilar',
     author_email = 'contact@guillermoguiraoaguilar.com',

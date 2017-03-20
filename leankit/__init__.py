@@ -101,7 +101,7 @@ class Card(Converter):
         self.last_activity_str = card_dict['LastActivity']
         self.due_date_str = card_dict['DueDate']
         self.archived = card_dict.get('Archived', False)
-        assert self.id not in self.board.cards, "Attempted to create duplicate card: {}".format(self.id)
+        # assert self.id not in self.board.cards, "Attempted to create duplicate card: {}".format(self.id)
         self.board.cards[self.id] = self
 
     def __repr__(self):
@@ -111,7 +111,7 @@ class Card(Converter):
         data = super().jsonify()
         dates = ['LastActivity', 'LastMove', 'DateArchived', 'DueDate']
         for date in dates:
-          data[date] = getattr(self, self.prettify_name(date))
+            data[date] = getattr(self, self.prettify_name(date))
         return data
 
     @cached_property
@@ -307,23 +307,19 @@ class Board(Converter):
     def get_card(self, card_id):
         card_dict = api.get("/Board/{board_id}/GetCard/{card_id}".format(
                 board_id=str(self.id), card_id=card_id))
-
-        if not card_dict:
-            log.debug('Card {} not in server'.format(card_id))
-            return
-
-        assert self.lanes[card_dict['LaneId']], "Lane {} does not exist".format(card_dict['LaneId'])
-
-        if card_id in self.cards:
-            card = self.cards[card_id]
-            card.lane.remove_card(card)
-
+        assert self.lanes.get(card_dict['LaneId']), \
+            "Lane {} does not exist".format(card_dict['LaneId'])
+        #TODO: replace card in lane
+        # card = self.board.cards[card_id]
+        # card.lane.raw_data['Cards'].remove(card.raw_data)
+        # card.lane.cards.remove(card)
+        # del self.cards[card_id]
         lane = self.lanes[card_dict['LaneId']]
         card = Card(card_dict, lane, self)
-
-        lane.cards.append(card)
-        lane.raw_data['Cards'].append(card.raw_data)
-        self.cards[card.id] = card
+        # self.cards[card.id] = card
+        # lane = self.lanes[card_dict['LaneId']]
+        # lane.cards.append(card)
+        # lane.raw_data.append(card.raw_data)
         return card
 
     def find(self, array, attribute, value, mode='eq', case=True):
