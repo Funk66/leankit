@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import pytz
 import logging
 import operator
 from datetime import datetime
@@ -35,16 +36,16 @@ class Converter(object):
     def prettify_name(camelcase):
         camelcase = camelcase.replace('ID', '_id')
         if len(camelcase) > 1:
-            camelcase = camelcase[0].lower() + camelcase[1:]
-            return re.sub('([A-Z])', lambda match: '_' + match.group(1).lower(), camelcase)
+            return re.sub('([A-Z])', lambda match: '_' + match.group(1).lower(),
+                          camelcase[0].lower() + camelcase[1:])
         else:
             return camelcase.lower()
 
     @staticmethod
     def to_camel_case(name):
         if len(name) > 1:
-            name = name[0].upper() + name[1:]
-            return re.sub('(_[a-z])', lambda match: match.group(1)[1:].upper(), name)
+            return re.sub('(_[a-z])', lambda match: match.group(1)[1:].upper(),
+                          name[0].upper() + name[1:])
         else:
             return name.upper()
 
@@ -101,7 +102,6 @@ class Card(Converter):
         self.last_activity_str = card_dict['LastActivity']
         self.due_date_str = card_dict['DueDate']
         self.archived = card_dict.get('Archived', False)
-        # assert self.id not in self.board.cards, "Attempted to create duplicate card: {}".format(self.id)
         self.board.cards[self.id] = self
 
     def __repr__(self):
@@ -118,7 +118,8 @@ class Card(Converter):
     def history(self):
         history = api.get("/Card/History/{0.board.id}/{0.id}".format(self))
         for event in history:
-            event['DateTime'] = datetime.strptime(event['DateTime'], '%d/%m/%Y at %I:%M:%S %p')
+            date = datetime.strptime(event['DateTime'], '%d/%m/%Y at %I:%M:%S %p')
+            event['DateTime'] = self.board.timezone.localize(date)
             event['Position'] = len(history) - history.index(event)
             event['BoardId'] = self.board.id
         return list(reversed(history))
@@ -130,24 +131,24 @@ class Card(Converter):
     @property
     def due_date(self):
         if self.due_date_str:
-            return datetime.strptime(self.due_date_str, '%d/%m/%Y')
+            date = datetime.strptime(self.due_date_str, '%d/%m/%Y %I:%M:%S %p')
+            return self.board.timezone.localize(date)
         else:
             return ''
 
     @property
     def last_move(self):
         if self.last_move_str:
-            try:
-                return datetime.strptime(self.last_move_str, '%d/%m/%Y %I:%M:%S %p')
-            except ValueError:
-                return datetime.strptime(self.last_move_str, '%d/%m/%Y')
+            date = datetime.strptime(self.last_move_str, '%d/%m/%Y %I:%M:%S %p')
+            return self.board.timezone.localize(date)
         else:
             return ''
 
     @property
     def last_activity(self):
         if self.last_activity_str:
-            return datetime.strptime(self.last_activity_str, '%d/%m/%Y %I:%M:%S %p')
+            date = datetime.strptime(self.last_activity_str, '%d/%m/%Y %I:%M:%S %p')
+            return self.board.timezone.localize(date)
         else:
             return ''
 
@@ -160,12 +161,14 @@ class Card(Converter):
 
 
 class Lane(Converter):
-    attributes = ['Id', 'Title', 'Index', 'Orientation', 'ParentLaneId', 'ChildLaneIds',
-                  'SiblingLaneIds', 'ActivityId', 'ActivityName', 'LaneState', 'Width']
+    attributes = ['Id', 'Title', 'Index', 'Orientation', 'ParentLaneId',
+                  'ChildLaneIds', 'SiblingLaneIds', 'ActivityId',
+                  'ActivityName', 'LaneState', 'Width']
 
     def __init__(self, lane_dict, board):
         super().__init__(lane_dict, board)
-        self.cards = [Card(card_dict, self, board) for card_dict in lane_dict['Cards'] if card_dict['TypeId']]
+        self.cards = [Card(card_dict, self, board) for card_dict
+                      in lane_dict['Cards'] if card_dict['TypeId']]
         self.area = lane_dict.get('Area', 'wip')
 
     def __repr__(self):
@@ -173,7 +176,8 @@ class Lane(Converter):
 
     @property
     def path(self):
-        return '::'.join(reversed([self.title] + [lane.title for lane in self.ascendants]))
+        titles = [self.title] + [lane.title for lane in self.ascendants]
+        return '::'.join(reversed(titles))
 
     @property
     def main_lane(self):
@@ -233,10 +237,10 @@ class Lane(Converter):
 
 
 class Board(Converter):
-    attributes = ['Id', 'Title', 'Version', 'AvailableTags', 'BacklogTopLevelLaneId',
-                  'ArchiveTopLevelLaneId', 'TopLevelLaneIds']
+    attributes = ['Id', 'Title', 'AvailableTags', 'BacklogTopLevelLaneId',
+                  'ArchiveTopLevelLaneId', 'TopLevelLaneIds', 'Version']
 
-    def __init__(self, board, archive=False):
+    def __init__(self, board, archive=False, timezone='UTC'):
         if isinstance(board, int):
             board = api.get('/Boards/{}'.format(board))
         super().__init__(board, None)
@@ -248,6 +252,7 @@ class Board(Converter):
         self.card_types = self.populate('CardTypes', CardType)
         self.classes_of_service = self.populate('ClassesOfService', ClassOfService)
         self.organization_activities = self.populate('OrganizationActivities', OrganizationActivity)
+        self.timezone = pytz.timezone(timezone)
         if archive:
             self.get_archive()
 
@@ -264,14 +269,14 @@ class Board(Converter):
 
     @cached_property
     def archive_lanes(self):
-        if not self.archive_top_level_lane_id in self.lanes:
+        if self.archive_top_level_lane_id not in self.lanes:
             raise KanbanError("Archive lanes not available")
         archive_lane = self.lanes[self.archive_top_level_lane_id]
         return [archive_lane] + archive_lane.descendants
 
     @cached_property
     def backlog_lanes(self):
-        if not self.backlog_top_level_lane_id in self.lanes:
+        if self.backlog_top_level_lane_id not in self.lanes:
             raise KanbanError("Backlog lanes not available")
         backlog_lane = self.lanes[self.backlog_top_level_lane_id]
         return [backlog_lane] + backlog_lane.descendants
@@ -305,43 +310,43 @@ class Board(Converter):
             self.raw_data['Lanes'].append(lane_dict['Lane'])
 
     def get_card(self, card_id):
-        card_dict = api.get("/Board/{board_id}/GetCard/{card_id}".format(
-                board_id=str(self.id), card_id=card_id))
+        url = '/Board/{}/GetCard/{}'
+        card_dict = api.get(url.format(str(self.id), card_id))
         assert self.lanes.get(card_dict['LaneId']), \
             "Lane {} does not exist".format(card_dict['LaneId'])
-        #TODO: replace card in lane
-        # card = self.board.cards[card_id]
-        # card.lane.raw_data['Cards'].remove(card.raw_data)
-        # card.lane.cards.remove(card)
-        # del self.cards[card_id]
-        lane = self.lanes[card_dict['LaneId']]
+        lane = self.lanes[card_dict['LaneId']]  # TODO: replace card in lane
         card = Card(card_dict, lane, self)
-        # self.cards[card.id] = card
-        # lane = self.lanes[card_dict['LaneId']]
-        # lane.cards.append(card)
-        # lane.raw_data.append(card.raw_data)
         return card
 
     def find(self, array, attribute, value, mode='eq', case=True):
         matches = []
         for item in getattr(self, array).values():
             actual_value = getattr(item, attribute)
-            if case and isinstance(attribute, str) and isinstance(actual_value, str):
+            if case and isinstance(attribute, str) \
+                    and isinstance(actual_value, str):
                 actual_value = actual_value.lower()
                 value = value.lower()
             if getattr(operator, mode)(actual_value, value):
                 matches.append(item)
         return matches[0] if len(matches) == 1 else matches
 
+    def strptime(self, date_str, time=True):
+        if time:
+            date = datetime.strptime(date_str, '%d/%m/%Y at %I:%M:%S %p')
+            return self.timezone.localize(date)
+        else:
+            return datetime.strptime(date_str, '%d/%m/%Y')
+
 
 def get_boards():
     return api.get('/Boards')
 
+
 def get_newer_if_exists(board_id, version):
     """ Downloads a board if a newer version number exists """
-    board = api.get('/Board/{}/BoardVersion/{}/GetNewerIfExists'.format(board_id, version))
+    url = '/Board/{}/BoardVersion/{}/GetNewerIfExists'
+    board = api.get(url.format(board_id, version))
     if board:
         return Board(board)
     else:
         return None
-

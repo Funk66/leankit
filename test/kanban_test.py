@@ -92,6 +92,11 @@ class TestKanban(unittest.TestCase):
         self.board.cards[127256728].comments
         self.api.assert_called_with('/Card/GetComments/127260303/127256728')
 
+    def test_card_last_move(self):
+        expected = "2017-02-27 13:58:08+00:00"
+        actual = str(self.board.cards[127256728].last_move)
+        self.assertEqual(expected, actual)
+
 
 def get_file(url):
     filename = url[1:].replace('/', '-').lower()
