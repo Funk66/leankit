@@ -101,6 +101,8 @@ class Card(Converter):
         self.last_move_str = card_dict['LastMove']
         self.last_activity_str = card_dict['LastActivity']
         self.due_date_str = card_dict['DueDate']
+        self.actual_start_date_str = card_dict.get('ActualStartDate')
+        self.actual_finish_date_str = card_dict.get('ActualFinishDate')
         self.archived = card_dict.get('Archived', False)
         self.board.cards[self.id] = self
 
@@ -147,7 +149,8 @@ class Card(Converter):
     @property
     def last_activity(self):
         if self.last_activity_str:
-            date = datetime.strptime(self.last_activity_str, '%d/%m/%Y %I:%M:%S %p')
+            date = datetime.strptime(self.last_activity_str,
+                                     '%d/%m/%Y %I:%M:%S %p')
             return self.board.timezone.localize(date)
         else:
             return ''
@@ -156,6 +159,24 @@ class Card(Converter):
     def date_archived(self):
         if self.date_archived_str:
             return datetime.strptime(self.date_archived_str, '%d/%m/%Y')
+        else:
+            return ''
+
+    @property
+    def actual_start_date(self):
+        if self.actual_start_date_str:
+            date = datetime.strptime(self.actual_start_date_str,
+                                     '%d/%m/%Y %I:%M:%S %p')
+            return self.board.timezone.localize(date)
+        else:
+            return ''
+
+    @property
+    def actual_finish_date(self):
+        if self.actual_finish_date_str:
+            date = datetime.strptime(self.actual_finish_date_str,
+                                     '%d/%m/%Y %I:%M:%S %p')
+            return self.board.timezone.localize(date)
         else:
             return ''
 
