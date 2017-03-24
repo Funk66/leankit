@@ -330,6 +330,11 @@ class Board(Converter):
             self.lanes[lane.id] = lane
             self.raw_data['Lanes'].append(lane_dict['Lane'])
 
+    def get_recent_archive(self):
+        archive = api.get('/Board/{0.id}/ArchiveCards'.format(self))
+        return [Card(card, self.lanes.get(card['LaneId']), self)
+                for card in archive if card['TypeId']]
+
     def get_card(self, card_id):
         url = '/Board/{}/GetCard/{}'
         card_dict = api.get(url.format(str(self.id), card_id))

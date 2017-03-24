@@ -41,6 +41,12 @@ class TestKanban(unittest.TestCase):
         self.api.assert_called_with('/Board/127260303/Archive')
         self.assertEqual(3, len(self.board.cards))
 
+    def test_board_get_recent_archive(self):
+        cards = self.board.get_recent_archive()
+        self.assertEqual(1, len(cards))
+        self.assertIsInstance(cards[0], leankit.Card)
+        self.api.assert_called_with('/Board/127260303/ArchiveCards')
+
     def test_board_get_card(self):
         self.board.get_card(127256727)
         self.api.assert_called_with('/Board/127260303/GetCard/127256727')
