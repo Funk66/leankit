@@ -17,7 +17,7 @@ logging.disable(logging.DEBUG)
 class TestAPI(unittest.TestCase):
     def setUp(self):
         with open('credentials.yml') as config:
-            credentials = yml.load(config)
+            credentials = yaml.load(config)
         self.board_id = credentials.pop('board')
         leankit.api.authenticate(**credentials)
         self.board = leankit.api.get('/Boards/{}'.format(self.board_id))
@@ -83,6 +83,14 @@ class TestAPI(unittest.TestCase):
                 self.fail("Card {} has an invalid LastMove date format: {}".format(card_id, card['LastMove']))
             history_last_activity = datetime.datetime.strptime(self.history[card_id][0]['DateTime'], '%d/%m/%Y at %I:%M:%S %p')
             self.assertEqual(history_last_activity, card_last_activity, "The LastActivity attribute for card {} doesn't match the time of the last event".format(card_id))
+
+    def test_card_due_date(self):
+        for card_id, card in self.cards.items():
+            if card['DueDate']:
+                try:
+                    datetime.datetime.strptime(card['DueDate'], '%d/%m/%Y')
+                except ValueError:
+                    self.fail("Card {} has an invalid DueDate date format: {}".format(card_id, card['DueDate']))
 
     def test_history(self):
         for card_id, history in self.history.items():

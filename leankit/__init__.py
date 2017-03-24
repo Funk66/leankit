@@ -133,8 +133,7 @@ class Card(Converter):
     @property
     def due_date(self):
         if self.due_date_str:
-            date = datetime.strptime(self.due_date_str, '%d/%m/%Y %I:%M:%S %p')
-            return self.board.timezone.localize(date)
+            return datetime.strptime(self.due_date_str, '%d/%m/%Y')
         else:
             return ''
 
