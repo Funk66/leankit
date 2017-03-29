@@ -189,7 +189,6 @@ class Lane(Converter):
         super().__init__(lane_dict, board)
         self.cards = [Card(card_dict, self, board) for card_dict
                       in lane_dict['Cards'] if card_dict['TypeId']]
-        self.area = lane_dict.get('Area', 'wip')
 
     def __repr__(self):
         return self.path
@@ -247,7 +246,6 @@ class Lane(Converter):
 
     def jsonify(self):
         data = super().jsonify()
-        data['Area'] = self.area
         return data
 
     def propagate(self, key, value):
@@ -319,12 +317,10 @@ class Board(Converter):
 
     def get_archive(self):
         archive = api.get('/Board/{0.id}/Archive'.format(self))[0]
-        archive['Lane']['Area'] = 'archive'
         main_archive_lane = Lane(archive['Lane'], self)
         self.lanes[main_archive_lane.id] = main_archive_lane
         self.raw_data['Lanes'].append(archive['Lane'])
         for lane_dict in archive['ChildLanes']:
-            lane_dict['Lane']['Area'] = 'archive'
             lane = Lane(lane_dict['Lane'], self)
             self.lanes[lane.id] = lane
             self.raw_data['Lanes'].append(lane_dict['Lane'])
