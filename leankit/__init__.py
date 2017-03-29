@@ -135,7 +135,7 @@ class Card(Converter):
         if self.due_date_str:
             return datetime.strptime(self.due_date_str, '%d/%m/%Y')
         else:
-            return ''
+            return None
 
     @property
     def last_move(self):
@@ -143,7 +143,7 @@ class Card(Converter):
             date = datetime.strptime(self.last_move_str, '%d/%m/%Y %I:%M:%S %p')
             return self.board.timezone.localize(date)
         else:
-            return ''
+            return None
 
     @property
     def last_activity(self):
@@ -152,14 +152,14 @@ class Card(Converter):
                                      '%d/%m/%Y %I:%M:%S %p')
             return self.board.timezone.localize(date)
         else:
-            return ''
+            return None
 
     @property
     def date_archived(self):
         if self.date_archived_str:
             return datetime.strptime(self.date_archived_str, '%d/%m/%Y')
         else:
-            return ''
+            return None
 
     @property
     def actual_start_date(self):
@@ -168,7 +168,7 @@ class Card(Converter):
                                      '%d/%m/%Y %I:%M:%S %p')
             return self.board.timezone.localize(date)
         else:
-            return ''
+            return None
 
     @property
     def actual_finish_date(self):
@@ -177,7 +177,7 @@ class Card(Converter):
                                      '%d/%m/%Y %I:%M:%S %p')
             return self.board.timezone.localize(date)
         else:
-            return ''
+            return None
 
 
 class Lane(Converter):
