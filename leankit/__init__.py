@@ -50,7 +50,7 @@ class Converter(object):
             return name.upper()
 
     def jsonify(self):
-        data = {'LastUpdate': datetime.today()}
+        data = {'LastUpdate': datetime.utcnow()}
         for attr in self.attributes:
             data[attr] = self.raw_data[attr]
         if self.board:
@@ -363,11 +363,11 @@ def get_boards():
     return api.get('/Boards')
 
 
-def get_newer_if_exists(board_id, version):
+def get_newer_if_exists(board_id, version, timezone='UTC'):
     """ Downloads a board if a newer version number exists """
     url = '/Board/{}/BoardVersion/{}/GetNewerIfExists'
     board = api.get(url.format(board_id, version))
     if board:
-        return Board(board)
+        return Board(board, timezone=timezone)
     else:
         return None
