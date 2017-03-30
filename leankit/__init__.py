@@ -59,8 +59,8 @@ class Converter(object):
 
 
 class User(Converter):
-    attributes = ['Id', 'UserName', 'FullName', 'EmailAddress',
-                  'Enabled', 'IsDeleted', 'RoleName', 'GravatarLink']
+    attributes = ['Id', 'UserName', 'FullName', 'EmailAddress', 'GravatarLink'
+                  'Enabled', 'IsDeleted', 'RoleName']
 
     def __repr__(self):
         return self.user_name
@@ -88,11 +88,9 @@ class OrganizationActivity(Converter):
 
 
 class Card(Converter):
-    attributes = ['Id', 'Title', 'Description', 'PriorityText',
-                  'ClassOfServiceId', 'Tags', 'Color', 'Size',
-                  'ExternalCardID', 'AssignedUserId', 'IsBlocked',
-                  'BlockReason', 'Priority', 'TypeName', 'TypeId',
-                  'ClassOfServiceTitle', 'AssignedUserName']
+    attributes = ['Id', 'Title', 'Description', 'PriorityText','ExternalCardID',
+                  'ClassOfServiceId', 'Tags', 'Color', 'Size', 'AssignedUserId',
+                  'IsBlocked', 'BlockReason', 'TypeId']
 
     def __init__(self, card_dict, lane, board):
         super().__init__(card_dict, board)
@@ -103,6 +101,9 @@ class Card(Converter):
         self.due_date_str = card_dict['DueDate']
         self.actual_start_date_str = card_dict.get('ActualStartDate')
         self.actual_finish_date_str = card_dict.get('ActualFinishDate')
+        tags = card_dict['Tags']
+        self.tags = tags.split(',') if tags else []
+        self.priority = card_dict['PriorityText']
         self.archived = card_dict.get('Archived', False)
         self.board.cards[self.id] = self
 
@@ -181,9 +182,9 @@ class Card(Converter):
 
 
 class Lane(Converter):
-    attributes = ['Id', 'Title', 'Index', 'Orientation', 'ParentLaneId',
-                  'ChildLaneIds', 'SiblingLaneIds', 'ActivityId',
-                  'ActivityName', 'LaneState', 'Width']
+    attributes = ['Id', 'Title', 'Index', 'Orientation', 'ActivityId', 'Width',
+                  'ChildLaneIds', 'SiblingLaneIds', 'ParentLaneId', 'LaneState',
+                  'ActivityName']
 
     def __init__(self, lane_dict, board):
         super().__init__(lane_dict, board)
