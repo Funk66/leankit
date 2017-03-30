@@ -59,7 +59,7 @@ class Converter(object):
 
 
 class User(Converter):
-    attributes = ['Id', 'UserName', 'FullName', 'EmailAddress', 'GravatarLink'
+    attributes = ['Id', 'UserName', 'FullName', 'EmailAddress', 'GravatarLink',
                   'Enabled', 'IsDeleted', 'RoleName']
 
     def __repr__(self):
