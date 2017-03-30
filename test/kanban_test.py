@@ -103,6 +103,10 @@ class TestKanban(unittest.TestCase):
         actual = str(self.board.cards[127256728].last_move)
         self.assertEqual(expected, actual)
 
+    def test_card_tags(self):
+        self.assertEqual(['Tag1'], self.board.cards[127256728].tags)
+        self.assertEqual([], self.board.cards[127256333].tags)
+
 
 def get_file(url):
     filename = url[1:].replace('/', '-').lower()

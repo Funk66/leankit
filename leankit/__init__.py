@@ -102,7 +102,7 @@ class Card(Converter):
         self.actual_start_date_str = card_dict.get('ActualStartDate')
         self.actual_finish_date_str = card_dict.get('ActualFinishDate')
         tags = card_dict['Tags']
-        self.tags = tags.split(',') if tags else []
+        self.tags = tags.strip(',').split(',') if tags else []
         self.priority = card_dict['PriorityText']
         self.archived = card_dict.get('Archived', False)
         self.board.cards[self.id] = self
