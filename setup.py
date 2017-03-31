@@ -12,7 +12,7 @@ except ImportError:
 __version__ = '0.1.0'
 
 if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist bdist_wheel upload')
+    os.system('python3 setup.py sdist bdist_wheel upload')
     os.system("git tag -a {0} -m 'version {0}'".format(__version__))
     os.system("git push --tags")
     sys.exit()
