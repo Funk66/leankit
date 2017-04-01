@@ -31,6 +31,9 @@ class TestKanban(unittest.TestCase):
     def test_board_title(self):
         self.assertEqual('API test', str(self.board))
 
+    def test_board_tags(self):
+        self.assertEqual(['Tag1'], self.board.tags)
+
     def test_board_archive_lanes(self):
         archive_lanes = [self.board.lanes[lane_id] for lane_id in [127250638, 127250762, 127250761]]
         self.assertEqual(archive_lanes, self.board.archive_lanes)

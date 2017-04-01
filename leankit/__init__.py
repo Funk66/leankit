@@ -309,6 +309,10 @@ class Board(Converter):
         lanes += self.archive_lanes
         return lanes
 
+    @property
+    def tags(self):
+        return self.available_tags.strip(',').split(',')
+
     def populate(self, key, element):
         items = {}
         for item in self.raw_data[key]:
