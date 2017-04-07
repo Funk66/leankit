@@ -55,7 +55,8 @@ class ClassOfService(Converter):
 
 class Card(Converter):
     date_fields = ['last_move', 'last_activity', 'create_date', 'date_archived',
-                   'actual_start_date', 'actual_finish_date', 'due_date']
+                   'due_date', 'last_comment', 'start_date',
+                   'actual_start_date', 'actual_finish_date']
 
     def __init__(self, data, lane, board):
         super().__init__(data, board)
@@ -66,14 +67,15 @@ class Card(Converter):
         self.assigned_users = [board.users[u] for u in data['AssignedUserIds']]
         self.class_of_service = board.classes_of_service.get(data['ClassOfServiceId'])
         for date in self.date_fields:
-            if hasattr(self, date) and getattr(self, date):
-                dt = parse(getattr(self, date), dayfirst=True)
-                if dt.time() == time(0):
-                    self.__dict__[date] = dt.date()
-                elif board.timezone:
-                    self.__dict__[date] = board.timezone.localize(dt)
-                else:
-                    self.__dict__[date] = dt
+            if hasattr(self, date):
+                if getattr(self, date):
+                    dt = parse(getattr(self, date), dayfirst=True)
+                    if dt.time() == time(0):
+                        self.__dict__[date] = dt.date()
+                    elif board.timezone:
+                        self.__dict__[date] = board.timezone.localize(dt)
+                    else:
+                        self.__dict__[date] = dt
 
         tag_str = self.raw_data['Tags']
         self.tags = tag_str.strip(',').split(',') if tag_str else []
