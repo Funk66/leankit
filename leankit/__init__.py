@@ -26,7 +26,7 @@ class Converter(object):
             setattr(self, self.prettify_name(attr), raw_data.get(attr, ''))
 
     def __repr__(self):
-        return self.id
+        return str(self.id)
 
     @staticmethod
     def prettify_name(camelcase):
