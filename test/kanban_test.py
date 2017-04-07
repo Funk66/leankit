@@ -12,7 +12,7 @@ class TestKanban(unittest.TestCase):
         patcher = patch('leankit.api.get', Mock(side_effect=get_file))
         self.api = patcher.start()
         self.addCleanup(patcher.stop)
-        self.board = leankit.Board(127260303)
+        self.board = leankit.Board(127260303, timezone='Europe/Berlin')
         self.toplane = self.board.lanes[127250640]
         self.midlane = self.board.lanes[127250757]
         self.sublane = self.board.lanes[127250758]
@@ -58,40 +58,27 @@ class TestKanban(unittest.TestCase):
         self.assertEqual('Lane 2', self.toplane.path)
         self.assertEqual('Lane 2::Sublane 2.2::Sublane 2.2.2', self.sublane.path)
 
-    def test_lane_main_lane(self):
-        self.assertEqual(self.toplane, self.sublane.main_lane)
-        self.assertEqual(self.toplane, self.toplane.main_lane)
+    def test_lane_top_lane(self):
+        self.assertEqual(self.toplane, self.sublane.top_lane)
+        self.assertEqual(self.toplane, self.toplane.top_lane)
 
     def test_lane_parent(self):
         self.assertEqual(self.midlane, self.sublane.parent)
         self.assertEqual(None, self.toplane.parent)
-
-    def test_lane_ascendants(self):
-        self.assertEqual([], self.toplane.ascendants)
-        self.assertEqual([self.midlane, self.toplane], self.sublane.ascendants)
 
     def test_lane_children(self):
         children = [self.board.lanes[lane_id] for lane_id in [127250760, 127250757]]
         self.assertEqual(children, self.toplane.children)
         self.assertEqual([], self.sublane.children)
 
-    def test_lane_role(self):
-        self.assertEqual('child', self.sublane.role)
-        self.assertEqual('parent', self.toplane.role)
+    def test_lane_ascendants(self):
+        self.assertEqual([], self.toplane.ascendants)
+        self.assertEqual([self.midlane, self.toplane], self.sublane.ascendants)
 
     def test_lane_descendants(self):
         descendants = [self.board.lanes[lane_id] for lane_id in [127250760, 127250757, 127250759, 127250758]]
         self.assertEqual(descendants, self.toplane.descendants)
         self.assertEqual([], self.sublane.descendants)
-
-    def test_lane_parent_lane_ids(self):
-        self.assertEqual([127250757, 127250640], self.sublane.parent_lane_ids)
-        self.assertEqual([], self.toplane.parent_lane_ids)
-
-    def test_lane_propagate(self):
-        self.toplane.propagate('test', True)
-        self.assertTrue(self.toplane.test)
-        self.assertTrue(self.sublane.test)
 
     def test_card_history(self):
         self.board.cards[127256728].history
@@ -102,7 +89,7 @@ class TestKanban(unittest.TestCase):
         self.api.assert_called_with('/Card/GetComments/127260303/127256728')
 
     def test_card_last_move(self):
-        expected = "2017-02-27 13:58:08+00:00"
+        expected = "2017-02-27 13:58:08+01:00"
         actual = str(self.board.cards[127256728].last_move)
         self.assertEqual(expected, actual)
 

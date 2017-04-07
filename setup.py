@@ -9,7 +9,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-__version__ = '0.1.0'
+__version__ = '1.0.0'
 
 if sys.argv[-1] == 'publish':
     os.system('python3 setup.py sdist bdist_wheel upload')
@@ -26,7 +26,8 @@ setup(
     author_email='contact@guillermoguiraoaguilar.com',
     url='https://github.com/Funk66/leankit.git',
     keywords=['leankit'],
-    install_requires=['requests', 'cached_property', 'pyyaml', 'pytz'],
+    install_requires=['dateutils', 'requests', 'cached_property', 'pyyaml',
+                      'pytz'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Natural Language :: English',
