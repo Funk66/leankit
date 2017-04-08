@@ -82,7 +82,7 @@ class Card(Converter):
                     self[date] = dt
 
     def __str__(self):
-        return str(self.external_card_id or self.id)
+        return str(self.get('ExternalCardID', self.id))
 
     @cached_property
     def history(self):
