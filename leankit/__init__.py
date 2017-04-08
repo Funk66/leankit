@@ -231,11 +231,11 @@ def get_boards():
     return api.get('/Boards')
 
 
-def get_newer_if_exists(board_id, version, timezone='UTC'):
+def get_newer_if_exists(board_id, version, tz='UTC'):
     """ Downloads a board if a newer version number exists """
     url = '/Board/{}/BoardVersion/{}/GetNewerIfExists'
     board = api.get(url.format(board_id, version))
     if board:
-        return Board(board, timezone=timezone)
+        return Board(board, tz)
     else:
         return None
