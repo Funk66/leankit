@@ -12,7 +12,7 @@ class TestKanban(unittest.TestCase):
         patcher = patch('leankit.api.get', Mock(side_effect=get_file))
         self.api = patcher.start()
         self.addCleanup(patcher.stop)
-        self.board = leankit.Board(127260303, timezone='Europe/Berlin')
+        self.board = leankit.Board(127260303, tz='Europe/Berlin')
         self.toplane = self.board.lanes[127250640]
         self.midlane = self.board.lanes[127250757]
         self.sublane = self.board.lanes[127250758]
@@ -32,7 +32,7 @@ class TestKanban(unittest.TestCase):
         self.assertEqual('API test', str(self.board))
 
     def test_board_tags(self):
-        self.assertEqual(['Tag1'], self.board.tags)
+        self.assertEqual(['Tag1'], self.board.available_tags)
 
     def test_board_archive_lanes(self):
         archive_lanes = [self.board.lanes[lane_id] for lane_id in [127250638, 127250762, 127250761]]
