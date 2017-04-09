@@ -72,14 +72,17 @@ class Card(Converter):
         self.tags = self.tags.strip(',').split(',') if self.tags else []
         self.board.cards[self.id] = self
         for date in self.date_fields:
-            if self.get(date):
-                dt = parse(self[date], dayfirst=True)
-                if dt.time() == time(0):
-                    self[date] = dt.date()
-                elif board.timezone:
-                    self[date] = board.timezone.localize(dt)
+            if date in self:
+                if self[date]:
+                    dt = parse(self[date], dayfirst=True)
+                    if dt.time() == time(0):
+                        self[date] = dt.date()
+                    elif board.timezone:
+                        self[date] = board.timezone.localize(dt)
+                    else:
+                        self[date] = dt
                 else:
-                    self[date] = dt
+                    self[date] = None
 
     def __str__(self):
         return str(self.get('ExternalCardID', self.id))
