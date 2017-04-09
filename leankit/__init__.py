@@ -10,6 +10,11 @@ from cached_property import cached_property
 from .connector import api
 
 
+__author__ = "Guillermo Guirao Aguilar"
+__email__ = "contact@guillermoguiraoaguilar.com"
+__license__ = "MIT"
+__version__ = "1.1.3"
+
 log = getLogger(__name__)
 
 
