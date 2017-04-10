@@ -13,7 +13,7 @@ from .connector import api
 __author__ = "Guillermo Guirao Aguilar"
 __email__ = "contact@guillermoguiraoaguilar.com"
 __license__ = "MIT"
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 
 log = getLogger(__name__)
 
@@ -28,7 +28,7 @@ class Converter(dict):
         self.board = board
 
     def __repr__(self):
-        return str(self.id)
+        return '<{0.__class__.__name__} {0.id}>'.format(self)
 
     def __hash__(self):
         return hash(repr(self))
