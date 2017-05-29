@@ -12,7 +12,7 @@ class TestKanban(unittest.TestCase):
         patcher = patch('leankit.api.get', Mock(side_effect=get_file))
         self.api = patcher.start()
         self.addCleanup(patcher.stop)
-        self.board = leankit.Board(127260303, tz='Europe/Berlin')
+        self.board = leankit.Board(127260303, timezone='Europe/Berlin')
         self.toplane = self.board.lanes[127250640]
         self.midlane = self.board.lanes[127250757]
         self.sublane = self.board.lanes[127250758]
@@ -47,7 +47,7 @@ class TestKanban(unittest.TestCase):
     def test_board_get_recent_archive(self):
         cards = self.board.get_recent_archive()
         self.assertEqual(1, len(cards))
-        self.assertIsInstance(cards[0], leankit.Card)
+        self.assertIsInstance(cards[0], leankit.kanban.Card)
         self.api.assert_called_with('/Board/127260303/ArchiveCards')
 
     def test_board_get_card(self):

@@ -1,10 +1,10 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import requests
-import logging
 
-
-log = logging.getLogger(__name__)
+from . import log
+from . import config
 
 
 class Connector(object):
@@ -16,7 +16,6 @@ class Connector(object):
 
     def get(self, url):
         log.debug('GET {}'.format(url))
-        assert self.session.auth, "No credentials provided"
         try:
             request = self.session.get(self.base + url, verify=True)
         except Exception as error:
@@ -27,13 +26,15 @@ class Connector(object):
                 if response['ReplyCode'] == 200:
                     return response['ReplyData'][0]
                 else:
-                    raise ConnectionError("Error {ReplyCode}: {ReplyText}".format(**response))
+                    msg = "Error {ReplyCode}: {ReplyText}".format(**response)
+                    raise ConnectionError(msg)
 
             except ValueError:
                 raise IOError("Invalid response")
         else:
-            raise ConnectionError('Server responded with code {}'.format(request.status_code))
+            msg = 'Server responded with code {0.status_code}'.format(request)
+            raise ConnectionError(msg)
 
 
 api = Connector()
-
+api.authenticate(**config.credentials)
