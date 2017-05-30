@@ -1,21 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-__version__ = '1.1.4'
 
-if sys.argv[-1] == 'publish':
-    os.system('python3 setup.py sdist bdist_wheel upload')
-    os.system("git tag -a {0} -m 'version {0}'".format(__version__))
-    os.system("git push --tags")
-    sys.exit()
+__version__ = '1.2.1'
+
 
 setup(
     name='leankit',
@@ -26,8 +19,7 @@ setup(
     author_email='contact@guillermoguiraoaguilar.com',
     url='https://github.com/Funk66/leankit.git',
     keywords=['leankit'],
-    install_requires=['dateutils', 'requests', 'cached_property', 'pyyaml',
-                      'pytz'],
+    install_requires=['dateutils', 'requests', 'cached_property', 'pytz'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Natural Language :: English',
