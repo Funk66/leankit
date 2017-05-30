@@ -12,7 +12,7 @@ class Connector(object):
 
     def authenticate(self, domain, username, password):
         self.session.auth = (username, password)
-        self.base = 'https://' + domain + '.leankit.com/kanban/api'
+        self.base = 'https://{}.leankit.com/kanban/api'.format(domain)
 
     def get(self, url):
         log.debug('GET {}'.format(url))

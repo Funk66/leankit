@@ -7,14 +7,29 @@ import json
 from . import log
 
 
-config_path = os.path.expanduser('~/.config/leankit/config.json')
-credentials = {'domain': 'domain', 'username': '', 'password': ''}
-try:
-    if os.path.exists(config_path):
-        with open(config_path) as config_file:
-            credentials = json.load(config_file)
-except json.JSONDecodeError:
-    log.warning("Failed to load configuration file")
+def save():
+    if not os.path.exists(config_folder):
+        os.makedirs(config_folder)
+    creds = {key: input(key.capitalize() + ': ') for key in credentials}
+    with open(config_file, 'w') as conf:
+        json.dump(creds, conf, indent=2)
 
-for key in credentials:
-    credentials[key] = os.getenv('LEANKIT_' + key.upper(), credentials[key])
+
+def load():
+    if os.path.exists(config_file):
+        with open(config_file) as conf:
+            try:
+                return json.load(conf)
+            except json.JSONDecodeError:
+                log.warning("Failed to load configuration file")
+
+
+config_folder = os.path.expanduser('~/.config/leankit')
+config_file = os.path.join(config_folder, 'config.json')
+credentials = {key: os.getenv('LEANKIT_' + key.upper()) for key in
+               ['domain', 'username', 'password']}
+credentials.update(load() or {})
+
+
+if __name__ == "__main__":
+    save()
