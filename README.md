@@ -2,6 +2,7 @@
 
 [![NPM info](https://travis-ci.org/Funk66/leankit.svg?branch=master)](https://travis-ci.org/Funk66/leankit.svg?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3976597cd3694ccba012c1da176fa85f)](https://www.codacy.com/app/Funk66/leankit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Funk66/leankit&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/3976597cd3694ccba012c1da176fa85f)](https://www.codacy.com/app/Funk66/leankit?utm_source=github.com&utm_medium=referral&utm_content=Funk66/leankit&utm_campaign=Badge_Coverage)
 
 Python 3.x wrapper for Leankit's API v1.0
 
