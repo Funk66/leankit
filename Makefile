@@ -1,18 +1,12 @@
-.PHONY: install test clean publish
+.PHONY: install test clean
 
 install:
-	if [ ! -d env ]; then virtualenv env; fi
-	env/bin/pip install -r requirements.txt
+	if [ ! -d env ]; then python3 -m venv env; fi
 	env/bin/python setup.py develop
 
 test:
-	nosetests --rednose
+	python3 setup.py nosetests
 
 clean:
-	find . -name '*.pyc' -exec rm --force {} +
-	find . -name '*.pyo' -exec rm --force {} +
-	find . -name '*~' -exec rm --force  {} +
-
-publish:
-	pip install wheel
-	python setup.py sdist bdist_wheel upload
+	find . -name '*.pyc' -exec rm -f {} +
+	find . -name '__pycache__' -exec rm -rf {} +

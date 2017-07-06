@@ -1,34 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from os import path
+from setuptools import setup
 
 
-__version__ = '1.2.0'
+def version():
+    init = path.join(path.dirname(__file__), 'leankit', '__init__.py')
+    line = list(filter(lambda l: l.startswith('__version__'), open(init)))[0]
+    return line.split('=')[-1].strip(" '\"\n")
 
 
-setup(
-    name='leankit',
-    packages=['leankit'],
-    version=__version__,
-    description='Simple wrapper for the Leankit API',
-    author='Guillermo Guirao Aguilar',
-    author_email='contact@guillermoguiraoaguilar.com',
-    url='https://github.com/Funk66/leankit.git',
-    keywords=['leankit'],
-    install_requires=['dateutils', 'requests', 'cached_property', 'pytz'],
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Natural Language :: English',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Utilities'
-    ]
-)
+setup(name='leankit',
+      packages=['leankit'],
+      version=version(),
+      author='Guillermo Guirao Aguilar',
+      author_email='contact@guillermoguiraoaguilar.com',
+      url='https://github.com/Funk66/leankit',
+      install_requires=['dateutils', 'cached_property', 'requests', 'pytz'],
+      setup_requires=['nose', 'rednose', 'coverage'],
+      classifiers=['Programming Language :: Python :: 3.5'])

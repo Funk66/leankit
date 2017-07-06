@@ -17,7 +17,7 @@ logging.disable(logging.DEBUG)
 class TestAPI(unittest.TestCase):
     def setUp(self):
         with open('credentials.yml') as config:
-            credentials = yaml.load(config)
+            credentials = yaml.safe_load(config)
         self.board_id = credentials.pop('board')
         leankit.api.authenticate(**credentials)
         self.board = leankit.api.get('/Boards/{}'.format(self.board_id))
