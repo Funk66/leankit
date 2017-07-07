@@ -64,6 +64,7 @@ class Card(Converter):
         self.lane = lane
         self.board = board
         self.type = board.card_types[data['TypeId']]
+        self.class_of_service_id = data['ClassOfServiceId'] or None
         self.class_of_service = \
             board.classes_of_service.get(data['ClassOfServiceId'])
         self.assigned_user = board.users.get(data['AssignedUserId'])
@@ -88,12 +89,17 @@ class Card(Converter):
     @cached_property
     def history(self):
         history = api.get("/Card/History/{0.board.id}/{0.id}".format(self))
-        for event in history:
+        events = len(history)
+        for index, event in enumerate(history):
             date = parse(event['DateTime'], dayfirst=True)
             if self.board.timezone:
                 date = self.board.timezone.localize(date)
             event['DateTime'] = date
-            event['Position'] = len(history) - history.index(event)
+            event['Position'] = events - index
+            if event['ToLaneId'] == 0:
+                event['ToLaneId'] = None
+            if event.get('FromLaneId') == 0:
+                event['FromLaneId'] = None
         return list(reversed(history))
 
     @cached_property
@@ -220,8 +226,6 @@ class Board(Converter):
     def get_card(self, card_id):
         url = '/Board/{}/GetCard/{}'
         card_dict = api.get(url.format(str(self.id), card_id))
-        assert self.lanes.get(card_dict['LaneId']), \
-            "Lane {} does not exist".format(card_dict['LaneId'])
-        lane = self.lanes[card_dict['LaneId']]  # TODO: replace card in lane
+        lane = self.lanes.get(card_dict['LaneId'])  # TODO: replace card in lane
         card = Card(card_dict, lane, self)
         return card
