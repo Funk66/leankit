@@ -65,6 +65,7 @@ class Card(Converter):
         self.board = board
         self.type = board.card_types[data['TypeId']]
         self.class_of_service_id = data['ClassOfServiceId'] or None
+        self.assigned_user_id = data['AssignedUserId'] or None
         self.class_of_service = \
             board.classes_of_service.get(data['ClassOfServiceId'])
         self.assigned_user = board.users.get(data['AssignedUserId'])
