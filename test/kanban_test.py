@@ -98,6 +98,10 @@ class TestKanban(unittest.TestCase):
         self.assertEqual(['Tag1'], self.board.cards[127256728].tags)
         self.assertEqual([], self.board.cards[127256333].tags)
 
+    def test_event(self):
+        event = self.board.cards[127256728].history[1]
+        self.assertEqual(1, event.position)
+
 
 def get_file(url):
     filename = url[1:].replace('/', '-').lower()

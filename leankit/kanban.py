@@ -27,7 +27,8 @@ class Converter(dict):
 
     def __getattr__(self, name):
         try:
-            return self[self._capitalize_(name)]
+            value = self[self._capitalize_(name)]
+            return None if name.endswith('_id') and value is 0 else value
         except KeyError as error:
             raise AttributeError(error)
 
@@ -54,21 +55,48 @@ class ClassOfService(Converter):
         return self.title
 
 
+class Event(Converter):
+    def __init__(self, data, board):
+        super().__init__(data, board)
+        self.date_time = parse(self.date_time, dayfirst=True)
+        if self.board.timezone:
+            self.date_time = self.board.timezone.localize(self.date_time)
+
+    def __repr__(self):
+        return '<{0.__class__.__name__} {0.card.id}-{0.position}>'.format(self)
+
+    @property
+    def card(self):
+        return self.board.cards[self.card_id]
+
+    @property
+    def to_lane(self):
+        return self.board.lanes.get(self.to_lane_id)
+
+    @property
+    def from_lane(self):
+        return self.board.lanes.get(self.from_lane_id)
+
+    @property
+    def user(self):
+        return self.board.users.get(self.user_id)
+
+    @property
+    def position(self):
+        return self.card.history.index(self)
+
+
 class Card(Converter):
-    date_fields = ['LastMove', 'LastActivity', 'CreateDate', 'DateArchived',
-                   'DueDate', 'LastComment', 'StartDate', 'ActualStartDate',
-                   'ActualFinishDate']
+    _date_fields_ = ['LastMove', 'LastActivity', 'CreateDate', 'DateArchived',
+                     'DueDate', 'LastComment', 'StartDate', 'ActualStartDate',
+                     'ActualFinishDate']
 
     def __init__(self, data, lane, board):
         super().__init__(data, board)
         self.lane = lane
-        self.board = board
-        self.type = board.card_types[data['TypeId']]
-        self.class_of_service_id = data['ClassOfServiceId'] or None
-        self.assigned_user_id = data['AssignedUserId'] or None
         self.tags = self.tags.strip(',').split(',') if self.tags else []
         self.board.cards[self.id] = self
-        for date in self.date_fields:
+        for date in self._date_fields_:
             if date in self:
                 if self[date]:
                     dt = parse(self[date], dayfirst=True)
@@ -87,23 +115,15 @@ class Card(Converter):
     @cached_property
     def history(self):
         history = api.get("/Card/History/{0.board.id}/{0.id}".format(self))
-        events = len(history)
-        for index, event in enumerate(history):
-            date = parse(event['DateTime'], dayfirst=True)
-            if self.board.timezone:
-                date = self.board.timezone.localize(date)
-            event['DateTime'] = date
-            event['Position'] = events - index
-            event['UserId'] = int(event['UserId'])
-            if event['ToLaneId'] == 0:
-                event['ToLaneId'] = None
-            if event.get('FromLaneId') == 0:
-                event['FromLaneId'] = None
-        return list(reversed(history))
+        return list(reversed([Event(event, self.board) for event in history]))
 
     @cached_property
     def comments(self):
         return api.get("/Card/GetComments/{0.board.id}/{0.id}".format(self))
+
+    @property
+    def type(self):
+        return self.board.card_types[self.type_id]
 
     @property
     def class_of_service(self):
@@ -117,7 +137,6 @@ class Card(Converter):
 class Lane(Converter):
     def __init__(self, data, board):
         super().__init__(data, board)
-        self.parent_lane_id = data['ParentLaneId'] or None
         self.cards = [Card(card_dict, self, board) for card_dict
                       in data['Cards'] if card_dict['TypeId']]
 
