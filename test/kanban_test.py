@@ -64,8 +64,8 @@ class TestKanban(unittest.TestCase):
         self.assertEqual(self.toplane, self.toplane.top_lane)
 
     def test_lane_parent(self):
-        self.assertEqual(self.midlane, self.sublane.parent)
-        self.assertEqual(None, self.toplane.parent)
+        self.assertEqual(self.midlane, self.sublane.parent_lane)
+        self.assertEqual(None, self.toplane.parent_lane)
 
     def test_lane_children(self):
         children = [self.board.lanes[lane_id] for lane_id in [127250760, 127250757]]

@@ -66,9 +66,6 @@ class Card(Converter):
         self.type = board.card_types[data['TypeId']]
         self.class_of_service_id = data['ClassOfServiceId'] or None
         self.assigned_user_id = data['AssignedUserId'] or None
-        self.class_of_service = \
-            board.classes_of_service.get(data['ClassOfServiceId'])
-        self.assigned_user = board.users.get(data['AssignedUserId'])
         self.tags = self.tags.strip(',').split(',') if self.tags else []
         self.board.cards[self.id] = self
         for date in self.date_fields:
@@ -97,6 +94,7 @@ class Card(Converter):
                 date = self.board.timezone.localize(date)
             event['DateTime'] = date
             event['Position'] = events - index
+            event['UserId'] = int(event['UserId'])
             if event['ToLaneId'] == 0:
                 event['ToLaneId'] = None
             if event.get('FromLaneId') == 0:
@@ -107,10 +105,19 @@ class Card(Converter):
     def comments(self):
         return api.get("/Card/GetComments/{0.board.id}/{0.id}".format(self))
 
+    @property
+    def class_of_service(self):
+        return self.board.classes_of_service.get(self.class_of_service_id)
+
+    @property
+    def assigned_user(self):
+        return self.board.users.get(self.assigned_user_id)
+
 
 class Lane(Converter):
     def __init__(self, data, board):
         super().__init__(data, board)
+        self.parent_lane_id = data['ParentLaneId'] or None
         self.cards = [Card(card_dict, self, board) for card_dict
                       in data['Cards'] if card_dict['TypeId']]
 
@@ -127,7 +134,7 @@ class Lane(Converter):
         return ([self] + self.ascendants)[-1]
 
     @property
-    def parent(self):
+    def parent_lane(self):
         return self.board.lanes.get(self.parent_lane_id)
 
     @property
@@ -138,10 +145,10 @@ class Lane(Converter):
     def ascendants(self):
         """ Returns a list of all parent lanes sorted in ascending order """
         lanes = []
-        lane = self.parent
+        lane = self.parent_lane
         while lane:
             lanes.append(lane)
-            lane = lane.parent
+            lane = lane.parent_lane
         return lanes
 
     @property
