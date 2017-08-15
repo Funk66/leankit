@@ -53,7 +53,7 @@ class TestKanban(unittest.TestCase):
     def test_board_get_card(self):
         self.board.get_card(127256727)
         self.api.assert_called_with('/Board/127260303/GetCard/127256727')
-        self.assertIsNone(self.board.cards[127256727].class_of_service_id)
+        self.assertEqual(0, self.board.cards[127256727].class_of_service_id)
 
     def test_lane_path(self):
         self.assertEqual('Lane 2', self.toplane.path)
@@ -101,6 +101,7 @@ class TestKanban(unittest.TestCase):
     def test_event(self):
         event = self.board.cards[127256728].history[1]
         self.assertEqual(1, event.position)
+        self.assertEqual(1, event['Position'])
 
 
 def get_file(url):

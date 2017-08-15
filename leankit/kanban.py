@@ -27,8 +27,7 @@ class Converter(dict):
 
     def __getattr__(self, name):
         try:
-            value = self[self._capitalize_(name)]
-            return None if name.endswith('_id') and value is 0 else value
+            return self[self._capitalize_(name)]
         except KeyError as error:
             raise AttributeError(error)
 
@@ -56,14 +55,15 @@ class ClassOfService(Converter):
 
 
 class Event(Converter):
-    def __init__(self, data, board):
+    def __init__(self, data, board, position):
         super().__init__(data, board)
+        self.position = position
         self.date_time = parse(self.date_time, dayfirst=True)
         if self.board.timezone:
             self.date_time = self.board.timezone.localize(self.date_time)
 
     def __repr__(self):
-        return '<{0.__class__.__name__} {0.card.id}-{0.position}>'.format(self)
+        return '<{0.__class__.__name__} {0.card_id}-{0.position}>'.format(self)
 
     @property
     def card(self):
@@ -80,10 +80,6 @@ class Event(Converter):
     @property
     def user(self):
         return self.board.users.get(self.user_id)
-
-    @property
-    def position(self):
-        return self.card.history.index(self)
 
 
 class Card(Converter):
@@ -114,8 +110,8 @@ class Card(Converter):
 
     @cached_property
     def history(self):
-        history = api.get("/Card/History/{0.board.id}/{0.id}".format(self))
-        return list(reversed([Event(event, self.board) for event in history]))
+        events = api.get("/Card/History/{0.board.id}/{0.id}".format(self))
+        return [Event(e, self.board, p) for p, e in enumerate(reversed(events))]
 
     @cached_property
     def comments(self):
