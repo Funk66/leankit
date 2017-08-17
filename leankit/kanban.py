@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from pytz import timezone as tz
-from dateutil.parser import parse
-from datetime import time
 from cached_property import cached_property
 
 from . import log
@@ -15,6 +14,8 @@ class KanbanError(Exception):
 
 
 class Converter(dict):
+    _attrs_, _items_ = {}, {}
+
     def __init__(self, data, board):
         super().__init__(**data)
         self.board = board
@@ -25,18 +26,39 @@ class Converter(dict):
     def __hash__(self):
         return hash(repr(self))
 
+    def __getitem__(self, key):
+        if key in self._attrs_:
+            value = super().__getitem__(key)
+            return getattr(self, '_' + self._attrs_[key] + '_')(value)
+        elif key in self._items_:
+            return self.board[self._items_[key]].get(int(self[key + 'Id']))
+        else:
+            return super().__getitem__(key)
+
     def __getattr__(self, name):
+        key = name.title().replace('_', '')
         try:
-            return self[self._capitalize_(name)]
-        except KeyError as error:
-            raise AttributeError(error)
+            return self[key]
+        except KeyError:
+            raise AttributeError(name)
 
-    def __setattr__(self, name, value):
-        self[self._capitalize_(name)] = value
+    def _list_(self, value):
+        return [val for val in value.strip(',').split(',') if val]
 
-    @staticmethod
-    def _capitalize_(snake_case):
-        return snake_case.title().replace('_', '')
+    def _date_(self, value):
+        return datetime.strptime(value, '%d/%m/%Y').date() if value else None
+
+    def _datetime_(self, value):
+        if value:
+            time = datetime.strptime(value, '%d/%m/%Y %I:%M:%S %p')
+            if self.board.timezone:
+                return self.board.timezone.localize(time)
+            return time
+        return None
+
+    @property
+    def raw_data(self):
+        return {key: self[key] for key in self.keys()}
 
 
 class User(Converter):
@@ -46,91 +68,57 @@ class User(Converter):
 
 class CardType(Converter):
     def __str__(self):
-        return self.name
+        return self['Name']
 
 
 class ClassOfService(Converter):
     def __str__(self):
-        return self.title
+        return self['Title']
 
 
 class Event(Converter):
-    def __init__(self, data, board, position):
-        super().__init__(data, board)
-        self.position = position
-        self.date_time = parse(self.date_time, dayfirst=True)
-        if self.board.timezone:
-            self.date_time = self.board.timezone.localize(self.date_time)
+    _attrs_ = {'DateTime': 'datetime'}
+    _items_ = {'User': 'Users', 'ToLane': 'Lanes', 'FromLane': 'Lanes'}
 
     def __repr__(self):
-        return '<{0.__class__.__name__} {0.card_id}-{0.position}>'.format(self)
+        return '<{0.__class__.__name__}>'.format(self)
 
-    @property
-    def card(self):
-        return self.board.cards[self.card_id]
-
-    @property
-    def to_lane(self):
-        return self.board.lanes.get(self.to_lane_id)
-
-    @property
-    def from_lane(self):
-        return self.board.lanes.get(self.from_lane_id)
-
-    @property
-    def user(self):
-        return self.board.users.get(self.user_id)
+    def _datetime_(self, value):
+        time = datetime.strptime(value, '%d/%m/%Y at %I:%M:%S %p')
+        if self.board.timezone:
+            return self.board.timezone.localize(time)
+        return time
 
 
 class Card(Converter):
-    _date_fields_ = ['LastMove', 'LastActivity', 'CreateDate', 'DateArchived',
-                     'DueDate', 'LastComment', 'StartDate', 'ActualStartDate',
-                     'ActualFinishDate']
+    _attrs_ = {'LastMove': 'datetime', 'LastActivity': 'datetime',
+               'CreateDate': 'date', 'DateArchived': 'date', 'DueDate': 'date',
+               'LastComment': 'date', 'StartDate': 'date', 'Tags': 'list',
+               'ActualStartDate': 'datetime', 'ActualFinishDate': 'datetime'}
+    _items_ = {'Type': 'CardTypes', 'AssignedUser': 'Users',
+               'ClassOfService': 'ClassesOfService'}
 
     def __init__(self, data, lane, board):
         super().__init__(data, board)
         self.lane = lane
-        self.tags = self.tags.strip(',').split(',') if self.tags else []
         self.board.cards[self.id] = self
-        for date in self._date_fields_:
-            if date in self:
-                if self[date]:
-                    dt = parse(self[date], dayfirst=True)
-                    if dt.time() == time(0):
-                        self[date] = dt.date()
-                    elif board.timezone:
-                        self[date] = board.timezone.localize(dt)
-                    else:
-                        self[date] = dt
-                else:
-                    self[date] = None
 
     def __str__(self):
-        return str(self.get('ExternalCardID', self.id))
+        return str(self.get('ExternalCardID', self.id) or self.id)
 
     @cached_property
     def history(self):
         events = api.get("/Card/History/{0.board.id}/{0.id}".format(self))
-        return [Event(e, self.board, p) for p, e in enumerate(reversed(events))]
+        return [Event(event, self.board) for event in reversed(events)]
 
     @cached_property
     def comments(self):
         return api.get("/Card/GetComments/{0.board.id}/{0.id}".format(self))
 
-    @property
-    def type(self):
-        return self.board.card_types[self.type_id]
-
-    @property
-    def class_of_service(self):
-        return self.board.classes_of_service.get(self.class_of_service_id)
-
-    @property
-    def assigned_user(self):
-        return self.board.users.get(self.assigned_user_id)
-
 
 class Lane(Converter):
+    _items_ = {'ParentLane': 'Lanes'}
+
     def __init__(self, data, board):
         super().__init__(data, board)
         self.cards = [Card(card_dict, self, board) for card_dict
@@ -147,10 +135,6 @@ class Lane(Converter):
     @property
     def top_lane(self):
         return ([self] + self.ascendants)[-1]
-
-    @property
-    def parent_lane(self):
-        return self.board.lanes.get(self.parent_lane_id)
 
     @property
     def children(self):
@@ -179,6 +163,9 @@ class Lane(Converter):
 
 
 class Board(Converter):
+    _attrs_ = {'AvailableTags': 'list'}
+    _items_ = {'BacklogTopLevelLane': 'Lanes', 'ArchiveTopLevelLane': 'Lanes'}
+
     def __init__(self, board, timezone=None):
         if isinstance(board, int):
             log.debug('Downloading board {}'.format(board))
@@ -192,11 +179,9 @@ class Board(Converter):
         self._populate_('Lanes', Lane)
         self.lanes.update(self._populate_('Backlog', Lane))
         self.lanes.update(self._populate_('Archive', Lane))
-        tags = self.available_tags
-        self.available_tags = tags.strip(',').split(',') if tags else []
 
     def __str__(self):
-        return self.title
+        return self['Title']
 
     def _populate_(self, key, element):
         items = {}
@@ -210,18 +195,18 @@ class Board(Converter):
     def top_level_lanes(self):
         return [self.lanes[lane_id] for lane_id in self.top_level_lane_ids]
 
-    @cached_property
+    @property
     def archive_lanes(self):
         if self.archive_top_level_lane_id not in self.lanes:
             raise KanbanError("Archive lanes not available")
-        archive_lane = self.lanes[self.archive_top_level_lane_id]
+        archive_lane = self.archive_top_level_lane
         return [archive_lane] + archive_lane.descendants
 
-    @cached_property
+    @property
     def backlog_lanes(self):
         if self.backlog_top_level_lane_id not in self.lanes:
             raise KanbanError("Backlog lanes not available")
-        backlog_lane = self.lanes[self.backlog_top_level_lane_id]
+        backlog_lane = self.backlog_top_level_lane
         return [backlog_lane] + backlog_lane.descendants
 
     @property

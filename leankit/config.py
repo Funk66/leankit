@@ -7,7 +7,7 @@ import json
 from . import log
 
 
-def save():
+def save():  # pragma: no cover
     if not os.path.exists(config_folder):
         os.makedirs(config_folder)
     creds = {key: input(key.capitalize() + ': ') for key in credentials}
@@ -15,7 +15,7 @@ def save():
         json.dump(creds, conf, indent=2)
 
 
-def load():
+def load():  # pragma: no cover
     if os.path.exists(config_file):
         with open(config_file) as conf:
             try:
@@ -31,5 +31,5 @@ credentials = {key: os.getenv('LEANKIT_' + key.upper()) for key in
 credentials.update(load() or {})
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     save()

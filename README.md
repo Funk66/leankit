@@ -21,9 +21,8 @@ First you need to authenticate the client by providing your leankit domain, user
   >>> leankit.api.authenticate('domain', 'user@example.org', 'passw0rd')
   ```
 
-You can avoid this step by setting the environment variables `LEANKIT_DOMAIN`, `LEANKIT_USERNAME` and `LEANKIT_PASSWORD` respectively.
-Alternatively, credentials can be stored in plain text within your `~/.config` folder with the
-following command:
+You can skip this step by setting the environment variables `LEANKIT_DOMAIN`, `LEANKIT_USERNAME` and `LEANKIT_PASSWORD` respectively.
+Alternatively, credentials can be stored in plain text within your `~/.config` folder with the following command:
 
   ```bash
   $ python -m leankit.config
@@ -52,6 +51,22 @@ Dates are converted to native objects automatically for convenience.
   ```
 
 The history of each card is downloaded and cached when the `history` attribute is accessed for the first time.
+
+To access the data as received from the API, use the `raw_data` attribute.
+
+  ```python
+  >>> board.card_types[123123123].raw_data
+  {'ColorHex': '#d3e0e4',
+   'IconColor': None,
+   'IconName': None,
+   'IconPath': None,
+   'Id': 123123123,
+   'IsCardType': True,
+   'IsDefault': False,
+   'IsDefaultTaskType': False,
+   'IsTaskType': True,
+   'Name': 'Improvement'}
+  ```
 
 ## Testing
 
