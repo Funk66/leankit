@@ -42,9 +42,11 @@ class Converter(dict):
         except KeyError:
             raise AttributeError(name)
 
+    @staticmethod
     def _list_(self, value):
         return [val for val in value.strip(',').split(',') if val]
 
+    @staticmethod
     def _date_(self, value):
         return datetime.strptime(value, '%d/%m/%Y').date() if value else None
 
