@@ -1,9 +1,4 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from logging import getLogger
-
-log = getLogger(__name__)
 
 from .connector import api
 from .kanban import Board
@@ -23,8 +18,12 @@ def get_boards():
 def get_newer_if_exists(board_id, version, timezone='UTC'):
     """ Downloads a board if a newer version number exists """
     url = '/Board/{}/BoardVersion/{}/GetNewerIfExists'
+    log.debug('Getting board {} version >{}'.format(board_id, version))
     board = api.get(url.format(board_id, version))
     if board:
         return Board(board, timezone)
     else:
         return None
+
+
+log = getLogger(__name__)

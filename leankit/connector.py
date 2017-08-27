@@ -1,9 +1,6 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
+import logging
 import requests
 
-from . import log
 from . import config
 
 
@@ -36,5 +33,6 @@ class Connector(object):
             raise ConnectionError(msg)
 
 
+log = logging.getLogger(__name__)
 api = Connector()
 api.authenticate(**config.credentials)

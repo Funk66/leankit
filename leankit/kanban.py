@@ -1,11 +1,8 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
+from logging import getLogger
 from datetime import datetime
 from pytz import timezone as tz
 from cached_property import cached_property
 
-from . import log
 from . import api
 
 
@@ -239,3 +236,6 @@ class Board(Converter):
         lane = self.lanes.get(card_dict['LaneId'])  # TODO: replace card in lane
         card = Card(card_dict, lane, self)
         return card
+
+
+log = getLogger(__name__)
