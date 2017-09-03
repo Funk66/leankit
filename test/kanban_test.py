@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 import unittest
 import datetime
 
@@ -58,9 +55,12 @@ class TestKanban(unittest.TestCase):
         self.assertEqual(self.board.lanes[100001003],
                          self.board.lanes[100001005].parent_lane)
 
-    def test_lane_children(self):
-        self.assertEqual(2, len(self.board.lanes[100001003].children))
-        self.assertEqual([], self.board.lanes[100001006].children)
+    def test_lane_child_lanes(self):
+        self.assertEqual(2, len(self.board.lanes[100001003].child_lanes))
+        self.assertEqual([], self.board.lanes[100001006].child_lanes)
+
+    def test_lane_sibling_lanes(self):
+        self.assertEqual(3, len(self.board.lanes[100001002].sibling_lanes))
 
     def test_lane_ascendants(self):
         self.assertEqual([], (self.board.lanes[100001003].ascendants))
@@ -97,6 +97,17 @@ class TestKanban(unittest.TestCase):
     def test_card_tags(self):
         self.assertEqual(['Tag1', 'Tag2'], self.board.cards[100010001].tags)
         self.assertEqual([], self.board.cards[100010002].tags)
+
+    def test_card_assigned_user(self):
+        expected = self.board.users[100000001]
+        actual = self.board.cards[100010001].assigned_user
+        self.assertEqual(expected, actual)
+        actual = self.board.cards[100010002].assigned_user
+        self.assertEqual(None, actual)
+
+    def test_card_assigned_users(self):
+        self.assertEqual(1, len(self.board.cards[100010001].assigned_users))
+        self.assertEqual([], self.board.cards[100010002].assigned_users)
 
     def test_event_date_time(self):
         expected = "2017-03-30 11:21:01+02:00"

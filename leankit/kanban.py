@@ -28,7 +28,12 @@ class Converter(dict):
             value = super().__getitem__(key)
             return getattr(self, '_' + self._attrs_[key] + '_')(value)
         elif key in self._items_:
-            return self.board[self._items_[key]].get(int(self[key + 'Id']))
+            if key.endswith('s'):
+                item_ids = self[key[:-1] + 'Ids']
+                return [self.board[self._items_[key]].get(i) for i in item_ids]
+            else:
+                item_id = self[key + 'Id']
+                return self.board[self._items_[key]].get(item_id)
         else:
             return super().__getitem__(key)
 
@@ -94,8 +99,9 @@ class Card(Converter):
                'CreateDate': 'date', 'DateArchived': 'date', 'DueDate': 'date',
                'LastComment': 'date', 'StartDate': 'date', 'Tags': 'list',
                'ActualStartDate': 'datetime', 'ActualFinishDate': 'datetime'}
-    _items_ = {'Type': 'CardTypes', 'AssignedUser': 'Users',
-               'ClassOfService': 'ClassesOfService'}
+    _items_ = {'Type': 'CardTypes', 'AssignedUser': 'BoardUsers',
+               'ClassOfService': 'ClassesOfService', 'ParentCards': 'Cards',
+               'AssignedUsers': 'BoardUsers'}
 
     def __init__(self, data, lane, board):
         super().__init__(data, board)
@@ -116,7 +122,8 @@ class Card(Converter):
 
 
 class Lane(Converter):
-    _items_ = {'ParentLane': 'Lanes'}
+    _items_ = {'ParentLane': 'Lanes', 'SiblingLanes': 'Lanes',
+               'ChildLanes': 'Lanes'}
 
     def __init__(self, data, board):
         super().__init__(data, board)
@@ -136,10 +143,6 @@ class Lane(Converter):
         return ([self] + self.ascendants)[-1]
 
     @property
-    def children(self):
-        return [self.board.lanes[lane_id] for lane_id in self.child_lane_ids]
-
-    @property
     def ascendants(self):
         """ Returns a list of all parent lanes sorted in ascending order """
         lanes = []
@@ -153,7 +156,7 @@ class Lane(Converter):
     def descendants(self):
         """ Returns a list of all child lanes sorted in descending order """
         def sublanes(lane, array):
-            for child in lane.children:
+            for child in lane.child_lanes:
                 array.append(child)
                 sublanes(child, array)
             return array
@@ -163,7 +166,8 @@ class Lane(Converter):
 
 class Board(Converter):
     _attrs_ = {'AvailableTags': 'list'}
-    _items_ = {'BacklogTopLevelLane': 'Lanes', 'ArchiveTopLevelLane': 'Lanes'}
+    _items_ = {'BacklogTopLevelLane': 'Lanes', 'ArchiveTopLevelLane': 'Lanes',
+               'TopLevelLanes': 'Lanes'}
 
     def __init__(self, board, timezone=None):
         if isinstance(board, int):
@@ -196,8 +200,6 @@ class Board(Converter):
 
     @property
     def archive_lanes(self):
-        if self.archive_top_level_lane_id not in self.lanes:
-            raise KanbanError("Archive lanes not available")
         archive_lane = self.archive_top_level_lane
         return [archive_lane] + archive_lane.descendants
 
