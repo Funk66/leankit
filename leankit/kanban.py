@@ -221,6 +221,8 @@ class Board(Converter):
 
     def get_archive(self):
         archive = api.get('/Board/{0.id}/Archive'.format(self))[0]
+        siblings = self.board.lanes[archive['Lane']['Id']]['SiblingLaneIds']
+        archive['Lane']['SiblingLaneIds'] = siblings
         main_archive_lane = Lane(archive['Lane'], self)
         self.lanes[main_archive_lane.id] = main_archive_lane
         for lane_dict in archive['ChildLanes']:
