@@ -16,7 +16,7 @@ class Connector(object):
         try:
             request = self.session.get(self.base + url, verify=True)
         except Exception as error:
-            raise IOError("Unable to make HTTP request: {}".format(error))
+            raise ConnectionError("Unable to make request: {}".format(error))
         if request.ok:
             try:
                 response = request.json()

@@ -124,6 +124,10 @@ class Card(Converter):
 class Lane(Converter):
     _items_ = {'ParentLane': 'Lanes', 'SiblingLanes': 'Lanes',
                'ChildLanes': 'Lanes'}
+    BOX = 40  # height of the swim lane
+    WIDTH = 50  # width of the lane
+    HEADER = 8  # height of the lane header
+    BORDER = 1  # padding around the lane, header and swim lane
 
     def __init__(self, data, board):
         super().__init__(data, board)
@@ -141,6 +145,23 @@ class Lane(Converter):
     @property
     def top_lane(self):
         return ([self] + self.ascendants)[-1]
+
+    @cached_property
+    def left_lanes(self):
+        def sorted_lanes(lanes):
+            siblings = [lane for lane in lanes if lane.index < self.index]
+            return sorted(siblings, key=lambda lane: lane.index)
+
+        if self.parent_lane:
+            return sorted_lanes(self.sibling_lanes)
+        elif self is self.board.backlog_top_level_lane:
+            return []
+        elif self is self.board.archive_top_level_lane:
+            return [self.board.backlog_top_level_lane,
+                    *self.board.top_level_lanes]
+        else:
+            return [self.board.backlog_top_level_lane,
+                    *sorted_lanes(self.board.top_level_lanes)]
 
     @property
     def ascendants(self):
@@ -162,6 +183,77 @@ class Lane(Converter):
             return array
 
         return sublanes(self, [])
+
+    @cached_property
+    def terminal(self):
+        if not self.parent_lane:
+            return True
+        elif self.parent_lane.terminal:
+            last = len(self.left_lanes) == len(self.sibling_lanes)
+            return self.orientation == 0 or last
+        else:
+            return False
+
+    @cached_property
+    def height(self):
+        """ Height of the lane, not considering the height
+        of the surrounding lanes """
+        if self.child_lanes:
+            heights = [child.height for child in self.child_lanes]
+            if self.child_lanes[0].orientation == 0:
+                return self.HEADER + self.BORDER + max(heights)
+            else:
+                return self.HEADER + self.BORDER * len(heights) + sum(heights)
+        else:
+            return self.HEADER + self.BORDER + self.BOX
+
+    @cached_property
+    def left(self):
+        """ Distance from the left margin of the board
+        to the left side of the lane """
+        if self.orientation == 1:
+            return self.parent_lane.left
+        elif self.left_lanes:
+            left_lane = self.left_lanes[-1]
+            return left_lane.right + self.BORDER
+        elif self.parent_lane:
+            return self.parent_lane.left
+        else:
+            return 0
+
+    @cached_property
+    def right(self):
+        """ Distance from the left margin of the board
+        to the right side of the lane """
+        if self.child_lanes:
+            return max([child.right for child in self.child_lanes])
+        else:
+            return self.left + self.width * self.WIDTH
+
+    @cached_property
+    def top(self):
+        """ Distance from the top margin of the board
+        to the top side of the lane """
+        if self.orientation == 1 and self.left_lanes:
+            return self.left_lanes[-1].bottom + self.BORDER
+        elif self.parent_lane:
+            return self.parent_lane.top + self.HEADER + self.BORDER
+        else:
+            return 0
+
+    @cached_property
+    def bottom(self):
+        """ Distance from the top margin of the board
+        to the bottom side of the lane """
+        if self.orientation == 1:
+            if len(self.left_lanes) == len(self.sibling_lanes):
+                return self.parent_lane.bottom
+            else:
+                return self.top + self.height
+        elif self.parent_lane:
+            return self.parent_lane.bottom
+        else:
+            return self.height
 
 
 class Board(Converter):
@@ -240,6 +332,11 @@ class Board(Converter):
         lane = self.lanes.get(card_dict['LaneId'])  # TODO: replace card in lane
         card = Card(card_dict, lane, self)
         return card
+
+    @cached_property
+    def height(self):
+        """ Total height of the board """
+        return max([lane.bottom for lane in self.lanes.values()])
 
 
 log = getLogger(__name__)

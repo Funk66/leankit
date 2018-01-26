@@ -50,6 +50,13 @@ class TestKanban(unittest.TestCase):
         self.assertEqual(self.board.lanes[100001003],
                          self.board.lanes[100001003].top_lane)
 
+    def test_lane_left_lanes(self):
+        self.assertEqual(0, len(self.board.lanes[100001001].left_lanes))
+        self.assertEqual(1, len(self.board.lanes[100001002].left_lanes))
+        self.assertEqual(2, len(self.board.lanes[100001003].left_lanes))
+        self.assertEqual(1, len(self.board.lanes[100001005].left_lanes))
+        self.assertEqual(3, len(self.board.lanes[100001008].left_lanes))
+
     def test_lane_parent_lane(self):
         self.assertEqual(None, self.board.lanes[100001003].parent_lane)
         self.assertEqual(self.board.lanes[100001003],
@@ -113,7 +120,3 @@ class TestKanban(unittest.TestCase):
         expected = "2017-03-30 11:21:01+02:00"
         actual = str(self.board.cards[100010001].history[-1].date_time)
         self.assertEqual(expected, actual)
-
-
-if __name__ == "__main__":
-    unittest.main()
