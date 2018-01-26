@@ -84,12 +84,12 @@ class TestKanban(unittest.TestCase):
         self.assertEqual(7, len(self.board.cards[100010001].history))
 
     def test_card_last_move(self):
-        expected = "2017-02-27 13:58:08+01:00"
+        expected = "2017-03-15 12:45:00+01:00"
         actual = str(self.board.cards[100010001].last_move)
         self.assertEqual(expected, actual)
 
     def test_card_last_activity(self):
-        expected = "2017-03-30 11:21:01+02:00"
+        expected = "2017-03-15 12:45:00+01:00"
         actual = str(self.board.cards[100010001].last_activity)
         self.assertEqual(expected, actual)
 
@@ -97,7 +97,7 @@ class TestKanban(unittest.TestCase):
         self.assertEqual(None, self.board.cards[100010001].due_date)
 
     def test_card_date_archived(self):
-        date_archived = datetime.date(2017, 2, 27)
+        date_archived = datetime.date(2017, 3, 2)
         self.assertEqual(date_archived, self.board.cards[100010003].date_archived)
         self.assertEqual(None, self.board.cards[100010001].date_archived)
 
@@ -117,6 +117,6 @@ class TestKanban(unittest.TestCase):
         self.assertEqual([], self.board.cards[100010002].assigned_users)
 
     def test_event_date_time(self):
-        expected = "2017-03-30 11:21:01+02:00"
+        expected = "2017-03-10 11:21:01+01:00"
         actual = str(self.board.cards[100010001].history[-1].date_time)
         self.assertEqual(expected, actual)
