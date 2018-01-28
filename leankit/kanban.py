@@ -253,7 +253,7 @@ class Lane(Converter):
         elif self.parent_lane:
             return self.parent_lane.bottom
         else:
-            return self.height
+            return self.board.height
 
 
 class Board(Converter):
@@ -336,7 +336,7 @@ class Board(Converter):
     @cached_property
     def height(self):
         """ Total height of the board """
-        return max([lane.bottom for lane in self.lanes.values()])
+        return max([lane.height for lane in self.lanes.values()])
 
 
 log = getLogger(__name__)
