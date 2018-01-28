@@ -10,37 +10,22 @@ class TestKanban(unittest.TestCase):
         cls.board = leankit.Board(300000000)
         cls.lanes = {lane["Title"]: lane for lane in cls.board.lanes.values()}
 
-    # def test_lane_width(self):
-        # width = Lane.WIDTH * 4
-        # self.assertEqual(width, self.lanes["Backlog"].width)
-        # width = Lane.WIDTH * 3 + Lane.BORDER * 2
-        # self.assertEqual(width, self.lanes["Lane 3"].width)
-
-    def test_lane_terminal(self):
-        self.assertEqual(True, self.lanes["Backlog"].terminal)
-        self.assertEqual(False, self.lanes["Lane 3.1.2.1"].terminal)
-        self.assertEqual(False, self.lanes["Lane 3.1.2.2.2"].terminal)
-        self.assertEqual(True, self.lanes["Lane 3.2"].terminal)
+    def test_lane_width(self):
+        width = Lane.WIDTH * 4 + Lane.BORDER
+        self.assertEqual(width, self.lanes["Backlog"].width)
+        width = Lane.WIDTH * 3 + Lane.BORDER * 2
+        self.assertEqual(width, self.lanes["Lane 3"].width)
 
     def test_lane_height(self):
-        height = Lane.HEADER + Lane.BORDER + Lane.BOX
+        height = Lane.HEADER * 7 + Lane.BORDER * 9 + Lane.BOX * 3
+        self.assertEqual(height, self.lanes["Backlog"].height)
         self.assertEqual(height, self.lanes["Lane 1"].height)
-        self.assertEqual(height, self.lanes["Lane 3.1.2.2.1"].height)
-        height = Lane.HEADER * 2 + Lane.BORDER * 2 + Lane.BOX
-        self.assertEqual(height, self.lanes["Lane 2"].height)
+        height = Lane.HEADER * 6 + Lane.BORDER * 8 + Lane.BOX * 3
+        self.assertEqual(height, self.lanes["Lane 2.1"].height)
         height = Lane.HEADER * 4 + Lane.BORDER * 5 + Lane.BOX * 2
-        self.assertEqual(height, self.lanes["Lane 3.1.2"].height)
-
-    # def test_lane_height(self):
-        # height = Lane.HEADER * 7 + Lane.BORDER * 9 + Lane.BOX * 3
-        # self.assertEqual(height, self.lanes["Backlog"].height)
-        # self.assertEqual(height, self.lanes["Lane 1"]).height
-        # height = Lane.HEADER * 6 + Lane.BORDER * 8 + Lane.BOX * 3
-        # self.assertEqual(height, self.lanes["Lane 2.1"]).height
-        # height = Lane.HEADER * 4 + Lane.BORDER * 5 + Lane.BOX * 2
-        # self.assertEqual(height, self.lanes["Lane 3.1.1"]).height
-        # height = Lane.HEADER + Lane.BORDER + Lane.BOX
-        # self.assertEqual(height, self.lanes["Lane 3.1.2.2.2"]).height
+        self.assertEqual(height, self.lanes["Lane 3.1.1"].height)
+        height = Lane.HEADER + Lane.BORDER + Lane.BOX
+        self.assertEqual(height, self.lanes["Lane 3.1.2.2.2"].height)
 
     def test_lane_left(self):
         self.assertEqual(0, self.lanes["Backlog"].left)
@@ -65,28 +50,14 @@ class TestKanban(unittest.TestCase):
         self.assertEqual(top, self.lanes["Lane 3.1.2.2.2"].top)
 
     def test_lane_bottom(self):
-        bottom = Lane.HEADER * 7 + Lane.BORDER * 9 + Lane.BOX * 3
+        bottom = Lane.HEADER * 2 + Lane.BORDER * 2 + Lane.BOX
         self.assertEqual(bottom, self.lanes["Backlog"].bottom)
+        bottom = Lane.HEADER + Lane.BORDER + Lane.BOX
         self.assertEqual(bottom, self.lanes["Lane 1"].bottom)
-        self.assertEqual(bottom, self.lanes["Lane 2"].bottom)
+        bottom = Lane.HEADER * 7 + Lane.BORDER * 9 + Lane.BOX * 3
         self.assertEqual(bottom, self.lanes["Lane 3"].bottom)
         self.assertEqual(bottom, self.lanes["Lane 3.2"].bottom)
         bottom = Lane.HEADER * 6 + Lane.BORDER * 7 + Lane.BOX * 2
         self.assertEqual(bottom, self.lanes["Lane 3.1"].bottom)
-        self.assertEqual(bottom, self.lanes["Lane 3.1.1"].bottom)
-        self.assertEqual(bottom, self.lanes["Lane 3.1.2.2.1"].bottom)
-        bottom = Lane.HEADER * 6 + Lane.BORDER * 7 + Lane.BOX * 2
         self.assertEqual(bottom, self.lanes["Lane 3.1.2"].bottom)
-
-    # def test_lane_bottom(self):
-        # bottom = Lane.HEADER * 2 + Lane.BORDER * 2 + Lane.BOX
-        # self.assertEqual(bottom, self.lanes["Backlog"].bottom)
-        # bottom = Lane.HEADER + Lane.BORDER + Lane.BOX
-        # self.assertEqual(bottom, self.lanes["Lane 1"].bottom)
-        # bottom = Lane.HEADER * 7 + Lane.BORDER * 9 + Lane.BOX * 3
-        # self.assertEqual(bottom, self.lanes["Lane 3"].bottom)
-        # self.assertEqual(bottom, self.lanes["Lane 3.2"].bottom)
-        # bottom = Lane.HEADER * 6 + Lane.BORDER * 7 + Lane.BOX * 2
-        # self.assertEqual(bottom, self.lanes["Lane 3.1"].bottom)
-        # self.assertEqual(bottom, self.lanes["Lane 3.1.2"].bottom)
-        # self.assertEqual(bottom, self.lanes["Lane 3.1.2.2.1"].bottom)
+        self.assertEqual(bottom, self.lanes["Lane 3.1.2.2.1"].bottom)

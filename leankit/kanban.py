@@ -185,29 +185,6 @@ class Lane(Converter):
         return sublanes(self, [])
 
     @cached_property
-    def terminal(self):
-        if not self.parent_lane:
-            return True
-        elif self.parent_lane.terminal:
-            last = len(self.left_lanes) == len(self.sibling_lanes)
-            return self.orientation == 0 or last
-        else:
-            return False
-
-    @cached_property
-    def height(self):
-        """ Height of the lane, not considering the height
-        of the surrounding lanes """
-        if self.child_lanes:
-            heights = [child.height for child in self.child_lanes]
-            if self.child_lanes[0].orientation == 0:
-                return self.HEADER + self.BORDER + max(heights)
-            else:
-                return self.HEADER + self.BORDER * len(heights) + sum(heights)
-        else:
-            return self.HEADER + self.BORDER + self.BOX
-
-    @cached_property
     def left(self):
         """ Distance from the left margin of the board
         to the left side of the lane """
@@ -228,7 +205,7 @@ class Lane(Converter):
         if self.child_lanes:
             return max([child.right for child in self.child_lanes])
         else:
-            return self.left + self.width * self.WIDTH
+            return self.left + self["Width"] * self.WIDTH
 
     @cached_property
     def top(self):
@@ -245,13 +222,26 @@ class Lane(Converter):
     def bottom(self):
         """ Distance from the top margin of the board
         to the bottom side of the lane """
-        if self.orientation == 1:
-            if len(self.left_lanes) == len(self.sibling_lanes):
-                return self.parent_lane.bottom
+        if self.child_lanes:
+            return max([child.bottom for child in self.child_lanes])
+        else:
+            return self.top + self.HEADER + self.BORDER + self.BOX
+
+    @cached_property
+    def width(self):
+        """ Total width of the lane, including margins of all child lanes """
+        return self.right - self.left
+
+    @cached_property
+    def height(self):
+        """ Total height of the lane within the board """
+        if self.parent_lane:
+            last_lane = len(self.left_lanes) == len(self.sibling_lanes)
+            if self.orientation == 0 or last_lane:
+                difference = self.top - self.parent_lane.top
+                return self.parent_lane.height - difference
             else:
-                return self.top + self.height
-        elif self.parent_lane:
-            return self.parent_lane.bottom
+                return self.bottom - self.top
         else:
             return self.board.height
 
@@ -336,7 +326,7 @@ class Board(Converter):
     @cached_property
     def height(self):
         """ Total height of the board """
-        return max([lane.height for lane in self.lanes.values()])
+        return max([lane.bottom for lane in self.lanes.values()])
 
 
 log = getLogger(__name__)
