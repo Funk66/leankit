@@ -46,7 +46,7 @@ class Converter(dict):
 
     @staticmethod
     def _list_(value):
-        return [val for val in value.strip(',').split(',') if val]
+        return [v for v in value.strip(",").split(",") if v] if value else []
 
     @staticmethod
     def _date_(value):
