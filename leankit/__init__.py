@@ -7,7 +7,7 @@ from .kanban import Board
 __author__ = "Guillermo Guirao Aguilar"
 __email__ = "contact@guillermoguiraoaguilar.com"
 __license__ = "MIT"
-__version__ = "1.4.4"
+__version__ = "1.5.0"
 
 
 def get_boards():

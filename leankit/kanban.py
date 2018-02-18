@@ -50,11 +50,11 @@ class Converter(dict):
 
     @staticmethod
     def _date_(value):
-        return datetime.strptime(value, '%d/%m/%Y').date() if value else None
+        return datetime.strptime(value, "%m/%d/%Y").date() if value else None
 
     def _datetime_(self, value):
         if value:
-            time = datetime.strptime(value, '%d/%m/%Y %I:%M:%S %p')
+            time = datetime.strptime(value, "%m/%d/%Y %I:%M:%S %p")
             if self.board.timezone:
                 return self.board.timezone.localize(time)
             return time
@@ -88,7 +88,7 @@ class Event(Converter):
         return '<{0.__class__.__name__}>'.format(self)
 
     def _datetime_(self, value):
-        time = datetime.strptime(value, '%d/%m/%Y at %I:%M:%S %p')
+        time = datetime.strptime(value, "%m/%d/%Y at %I:%M:%S %p")
         if self.board.timezone:
             return self.board.timezone.localize(time)
         return time
